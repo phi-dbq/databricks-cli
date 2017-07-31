@@ -39,3 +39,19 @@ cluster = cluster_api.create_cluster(
     },
     ssh_public_keys=[SSH_PUBLIC_KEY]
 )
+
+# We can actually SSH into worker machines
+cluster_info = cluster_api.get_cluster(cluster['cluster_id'])
+
+driver_ssh_host = cluster_info['driver']['public_dns']
+
+# We could SSH into the machines and do stuffs
+import paramiko
+
+ssh = paramiko.SSHClient()
+ssh.load_system_host_keys()
+ssh.load_host_keys(os.path.join(os.environ['HOME'], '.ssh', 'databricks_cluster'))
+ssh.set_missing_host_key_policy(paramiko.WarningPolicy())
+ssh.connect(driver_ssh_host, 2200, 'ubuntu')
+print(repr(ssh.get_transport()))
+chan = ssh.invoke_shell(); chan.close()
